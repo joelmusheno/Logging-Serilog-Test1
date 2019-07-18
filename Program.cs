@@ -12,6 +12,29 @@ namespace Gofmx.Logging.Test
     {
         static void Main(string[] args)
         {
+            var serviceCollection = new ServiceCollection();
+            ConfigureServices(serviceCollection);
+
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+
+            var theApplication = serviceProvider.GetService<App>();
+            theApplication.Run();
+
+
+            Log.CloseAndFlush();
+        }
+
+        private static void ConfigureServices(IServiceCollection serviceCollection)
+        {
+            // Add logging
+            serviceCollection.AddSingleton(new LoggerFactory()
+                .AddConsole()
+                .AddSerilog()
+                .AddDebug());
+                 
+            serviceCollection.AddLogging();
+
+
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
                 .Build();
@@ -21,28 +44,15 @@ namespace Gofmx.Logging.Test
                 .Enrich.WithExceptionDetails()
                 .ReadFrom.Configuration(configuration)
                 .CreateLogger();
+                
+            // Add access to generic IConfigurationRoot
+            serviceCollection.AddSingleton(configuration);
 
-            var logger = Log.ForContext<Program>();
+            // // Add services
+            // serviceCollection.AddTransient<IBackupService, BackupService>();
 
-            logger.Debug("Logging Debug");
-
-            logger.Information("Logging Information");
-
-            // structured logging
-            var ec = new Example()
-            {
-                Name = "Kee Test 1",
-                CreateDate = DateTime.Now
-            };
-            //logger.Information($"Example Class Property Name {ec.Name}");
-
-            logger.Information("Example Class Property Name {name}", ec.Name);
-            
-            logger.Information("Example Class Decomposition {@example}", ec);
-
-            logger.Error(new Exception("Test Exception"), "Logging Error");
-        
-            Log.CloseAndFlush();
+            // Add app
+            serviceCollection.AddTransient<App>();
         }
     }
 }
