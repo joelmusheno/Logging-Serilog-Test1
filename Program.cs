@@ -28,12 +28,9 @@ namespace Gofmx.Logging.Test
         {
             // Add logging
             serviceCollection.AddSingleton(new LoggerFactory()
-                .AddConsole()
-                .AddSerilog()
-                .AddDebug());
+                .AddSerilog());
                  
             serviceCollection.AddLogging();
-
 
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
